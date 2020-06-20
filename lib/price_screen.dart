@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
+import 'dart:io' show Platform;
 
 import './coin_data.dart';
 
@@ -9,12 +11,40 @@ class PriceScreen extends StatefulWidget {
 
 class _PriceScreenState extends State<PriceScreen> {
   String selectedCurrency = 'USD';
-  List<DropdownMenuItem> currencyMenuItems = currenciesList
-      .map((currency) => DropdownMenuItem(
-            child: Text(currency),
-            value: currency,
-          ))
-      .toList();
+
+  DropdownButton<String> androidDropdown() {
+    List<DropdownMenuItem> currencyMenuItems = currenciesList
+        .map((currency) => DropdownMenuItem(
+              child: Text(currency),
+              value: currency,
+            ))
+        .toList();
+
+    return DropdownButton<String>(
+      value: selectedCurrency,
+      items: currencyMenuItems,
+      onChanged: (value) {
+        setState(() {
+          selectedCurrency = value;
+          print(selectedCurrency);
+        });
+      },
+    );
+  }
+
+  CupertinoPicker iosPicker() {
+    List<Text> currencyTextItems =
+        currenciesList.map((currency) => Text(currency)).toList();
+
+    return CupertinoPicker(
+      itemExtent: 32.0,
+      backgroundColor: Colors.lightBlue,
+      onSelectedItemChanged: (selectedIndex) {
+        print(currenciesList[selectedIndex]);
+      },
+      children: currencyTextItems,
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -52,16 +82,7 @@ class _PriceScreenState extends State<PriceScreen> {
             alignment: Alignment.center,
             padding: EdgeInsets.only(bottom: 30.0),
             color: Colors.lightBlue,
-            child: DropdownButton<String>(
-              value: selectedCurrency,
-              items: currencyMenuItems,
-              onChanged: (value) {
-                setState(() {
-                  selectedCurrency = value;
-                  print(selectedCurrency);
-                });
-              },
-            ),
+            child: Platform.isIOS ? iosPicker() : androidDropdown(),
           ),
         ],
       ),
