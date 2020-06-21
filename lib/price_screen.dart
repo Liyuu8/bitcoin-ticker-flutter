@@ -11,8 +11,7 @@ class PriceScreen extends StatefulWidget {
 
 class _PriceScreenState extends State<PriceScreen> {
   String selectedCurrency = currenciesList[10];
-  String selectedCrypto = cryptoList[0];
-  String cryptoInfo;
+  List<String> cryptoInfo = List(cryptoList.length);
 
   DropdownButton<String> androidDropdown() {
     List<DropdownMenuItem> currencyMenuItems = currenciesList
@@ -29,7 +28,7 @@ class _PriceScreenState extends State<PriceScreen> {
         if (value != selectedCurrency) {
           setState(() {
             selectedCurrency = value;
-            cryptoInfo = null;
+            cryptoInfo = List(cryptoList.length);
             getCryptoInfo();
           });
         }
@@ -48,7 +47,7 @@ class _PriceScreenState extends State<PriceScreen> {
         if (currenciesList[selectedIndex] != selectedCurrency) {
           setState(() {
             selectedCurrency = currenciesList[selectedIndex];
-            cryptoInfo = null;
+            cryptoInfo = List(cryptoList.length);
             getCryptoInfo();
           });
         }
@@ -57,12 +56,41 @@ class _PriceScreenState extends State<PriceScreen> {
     );
   }
 
+  List<Padding> cryptoInfoCards() {
+    return cryptoList
+        .map((crypto) => Padding(
+              padding: EdgeInsets.fromLTRB(18.0, 18.0, 18.0, 0),
+              child: Card(
+                color: Colors.lightBlueAccent,
+                elevation: 5.0,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10.0),
+                ),
+                child: Padding(
+                  padding:
+                      EdgeInsets.symmetric(vertical: 15.0, horizontal: 28.0),
+                  child: Text(
+                    '1 $crypto = ${cryptoInfo[cryptoList.indexOf(crypto)] ?? '?'} $selectedCurrency',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 20.0,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+              ),
+            ))
+        .toList();
+  }
+
   void getCryptoInfo() async {
-    dynamic coinData =
-        await CoinData().getCoinData(selectedCurrency, selectedCrypto);
-    setState(() {
-      cryptoInfo = coinData['rate'].toInt().toString();
-    });
+    for (String crypto in cryptoList) {
+      dynamic coinData = await CoinData().getCoinData(selectedCurrency, crypto);
+      setState(() {
+        cryptoInfo[cryptoList.indexOf(crypto)] =
+            coinData['rate'].toInt().toString();
+      });
+    }
   }
 
   @override
@@ -80,28 +108,10 @@ class _PriceScreenState extends State<PriceScreen> {
       ),
       body: Column(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: <Widget>[
-          Padding(
-            padding: EdgeInsets.fromLTRB(18.0, 18.0, 18.0, 0),
-            child: Card(
-              color: Colors.lightBlueAccent,
-              elevation: 5.0,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10.0),
-              ),
-              child: Padding(
-                padding: EdgeInsets.symmetric(vertical: 15.0, horizontal: 28.0),
-                child: Text(
-                  '1 $selectedCrypto = ${cryptoInfo ?? '?'} $selectedCurrency',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: 20.0,
-                    color: Colors.white,
-                  ),
-                ),
-              ),
-            ),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: cryptoInfoCards(),
           ),
           Container(
             height: 150.0,
